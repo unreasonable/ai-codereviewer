@@ -61,6 +61,7 @@ async function analyzeCode(
   prDetails: PRDetails
 ): Promise<Array<{ body: string; path: string; line: number }>> {
   const comments: Array<{ body: string; path: string; line: number }> = [];
+  const MAX_COMMENTS = 40;
 
   for (const file of parsedDiff) {
     if (file.to === "/dev/null") continue; // Ignore deleted files
@@ -70,11 +71,20 @@ async function analyzeCode(
       if (aiResponse) {
         const newComments = createComment(file, chunk, aiResponse);
         if (newComments) {
+          // Add new comments, but don't exceed the limit
+          const remainingSlots = MAX_COMMENTS - comments.length;
           comments.push(...newComments);
+
+          if (comments.length >= MAX_COMMENTS) break; // Stop if we've reached the limit          
         }
       }
     }
+    if (comments.length >= MAX_COMMENTS) break; // Stop if we've reached the limit
   }
+  if (comments.length >= MAX_COMMENTS) {
+    console.log(`Reached the maximum limit of ${MAX_COMMENTS} comments.`);
+  }
+
   return comments;
 }
 
@@ -127,7 +137,7 @@ async function getAIResponse(prompt: string): Promise<Array<{
     const response = await openai.chat.completions.create({
       ...queryConfig,
       // return JSON if the model supports it:
-      ...(OPENAI_API_MODEL === "gpt-4-1106-preview"
+      ...(OPENAI_API_MODEL === "gpt-4" || OPENAI_API_MODEL === "gpt-4o")
         ? { response_format: { type: "json_object" } }
         : {}),
       messages: [
