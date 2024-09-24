@@ -160,7 +160,8 @@ function getAIResponse(prompt) {
                         content: prompt,
                     },
                 ] }));
-            const res = ((_b = (_a = response.choices[0].message) === null || _a === void 0 ? void 0 : _a.content) === null || _b === void 0 ? void 0 : _b.trim()) || "{}";
+            let res = ((_b = (_a = response.choices[0].message) === null || _a === void 0 ? void 0 : _a.content) === null || _b === void 0 ? void 0 : _b.trim()) || "{}";
+            res = res.replace(/^```(?:json)?\s*|\s*```$/g, '');
             return JSON.parse(res).reviews;
         }
         catch (error) {
