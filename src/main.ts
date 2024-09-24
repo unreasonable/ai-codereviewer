@@ -133,7 +133,7 @@ async function getAIResponse(prompt: string): Promise<Array<{
     const response = await openai.chat.completions.create({
       ...queryConfig,
       // return JSON if the model supports it:
-      ...(OPENAI_API_MODEL === "gpt-4" || OPENAI_API_MODEL === "gpt-4o" || OPENAI_API_MODEL === "gpt-4o-mini")
+      ...(OPENAI_API_MODEL === "gpt-4" || OPENAI_API_MODEL === "gpt-4o" || OPENAI_API_MODEL === "gpt-4o-mini"
         ? { max_tokens: 700, top_p: 1, frequency_penalty: 0, presence_penalty: 0, temperature: 0.2, response_format: { type: "json_object" } }
         : {}),
       messages: [

@@ -88,6 +88,7 @@ function getDiff(owner, repo, pull_number) {
 function analyzeCode(parsedDiff, prDetails) {
     return __awaiter(this, void 0, void 0, function* () {
         const comments = [];
+        const MAX_COMMENTS = 20;
         for (const file of parsedDiff) {
             if (file.to === "/dev/null")
                 continue; // Ignore deleted files
@@ -97,10 +98,19 @@ function analyzeCode(parsedDiff, prDetails) {
                 if (aiResponse) {
                     const newComments = createComment(file, chunk, aiResponse);
                     if (newComments) {
+                        // Add new comments, but don't exceed the limit
+                        const remainingSlots = MAX_COMMENTS - comments.length;
                         comments.push(...newComments);
+                        if (comments.length >= MAX_COMMENTS)
+                            break; // Stop if we've reached the limit          
                     }
                 }
             }
+            if (comments.length >= MAX_COMMENTS)
+                break; // Stop if we've reached the limit
+        }
+        if (comments.length >= MAX_COMMENTS) {
+            console.log(`Reached the maximum limit of ${MAX_COMMENTS} comments.`);
         }
         return comments;
     });
@@ -109,7 +119,8 @@ function createPrompt(file, chunk, prDetails) {
     return `Your task is to review pull requests. Instructions:
 - Provide the response in following JSON format:  {"reviews": [{"lineNumber":  <line_number>, "reviewComment": "<review comment>"}]}
 - Do not give positive comments or compliments.
-- Provide comments and suggestions ONLY if there is something to improve, otherwise "reviews" should be an empty array.
+- Provide comments and suggestions ONLY if there is something meaningful to improve, otherwise "reviews" should be an empty array.
+- If you are unsure about the suggestion, it may not be necessary to share.
 - Write the comment in GitHub Markdown format.
 - Use the given description only for the overall context and only comment the code.
 - IMPORTANT: NEVER suggest adding comments to the code.
@@ -138,19 +149,14 @@ function getAIResponse(prompt) {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function* () {
         const queryConfig = {
-            model: OPENAI_API_MODEL,
-            temperature: 0.2,
-            max_tokens: 700,
-            top_p: 1,
-            frequency_penalty: 0,
-            presence_penalty: 0,
+            model: OPENAI_API_MODEL
         };
         try {
-            const response = yield openai.chat.completions.create(Object.assign(Object.assign(Object.assign({}, queryConfig), (OPENAI_API_MODEL === "gpt-4-1106-preview"
-                ? { response_format: { type: "json_object" } }
+            const response = yield openai.chat.completions.create(Object.assign(Object.assign(Object.assign({}, queryConfig), (OPENAI_API_MODEL === "gpt-4" || OPENAI_API_MODEL === "gpt-4o" || OPENAI_API_MODEL === "gpt-4o-mini"
+                ? { max_tokens: 700, top_p: 1, frequency_penalty: 0, presence_penalty: 0, temperature: 0.2, response_format: { type: "json_object" } }
                 : {})), { messages: [
                     {
-                        role: "system",
+                        role: "user",
                         content: prompt,
                     },
                 ] }));
