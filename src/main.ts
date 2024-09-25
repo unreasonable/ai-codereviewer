@@ -96,6 +96,7 @@ function createPrompt(file: File, chunk: Chunk, prDetails: PRDetails): string {
 - If you are unsure about the suggestion, it may not be necessary to share.
 - Write the comment in GitHub Markdown format.
 - Use the given description only for the overall context and only comment the code.
+- You are only allowed to write up to 20 comments so be selective and only comment the code for the most important issues.
 - IMPORTANT: NEVER suggest adding comments to the code.
 
 Review the following code diff in the file "${

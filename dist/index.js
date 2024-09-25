@@ -123,6 +123,7 @@ function createPrompt(file, chunk, prDetails) {
 - If you are unsure about the suggestion, it may not be necessary to share.
 - Write the comment in GitHub Markdown format.
 - Use the given description only for the overall context and only comment the code.
+- You are only allowed to write up to 20 comments so be selective and only comment the code for the most important issues.
 - IMPORTANT: NEVER suggest adding comments to the code.
 
 Review the following code diff in the file "${file.to}" and take the pull request title and description into account when writing the response.
